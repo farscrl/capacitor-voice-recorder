@@ -10,23 +10,27 @@ class CustomMediaRecorder {
     private var status = CurrentRecordingStatus.NONE
     
     private let settings = [
-        AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
-        AVSampleRateKey: 44100,
+        AVFormatIDKey: Int(kAudioFormatLinearPCM),
+        AVSampleRateKey: 48000,
         AVNumberOfChannelsKey: 1,
+        AVLinearPCMBitDepthKey: 24,
+        AVLinearPCMIsBigEndianKey: false,
+        AVLinearPCMIsFloatKey: false,
+        AVLinearPCMIsNonInterleaved: false,
         AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
-    ]
-    
+    ] as [String : Any]
+
     private func getDirectoryToSaveAudioFile() -> URL {
         return URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
     }
-    
+
     public func startRecording() -> Bool {
         do {
             recordingSession = AVAudioSession.sharedInstance()
             originalRecordingSessionCategory = recordingSession.category
             try recordingSession.setCategory(AVAudioSession.Category.playAndRecord)
             try recordingSession.setActive(true)
-            audioFilePath = getDirectoryToSaveAudioFile().appendingPathComponent("\(UUID().uuidString).aac")
+            audioFilePath = getDirectoryToSaveAudioFile().appendingPathComponent("\(UUID().uuidString).wav")
             audioRecorder = try AVAudioRecorder(url: audioFilePath, settings: settings)
             audioRecorder.record()
             status = CurrentRecordingStatus.RECORDING
