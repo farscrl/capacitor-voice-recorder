@@ -53,6 +53,8 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
+    "extendable-media-recorder": "^9.2.4",
+    "extendable-media-recorder-wav-encoder": "^7.0.111",
     "get-blob-duration": "^1.2.0"
   },
   "devDependencies": {

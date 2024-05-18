@@ -1,5 +1,6 @@
 import getBlobDuration from 'get-blob-duration';
-
+import { MediaRecorder, register } from 'extendable-media-recorder';
+import { connect } from 'extendable-media-recorder-wav-encoder';
 import type {Base64String, CurrentRecordingStatus, GenericResponse, RecordingData} from './definitions';
 import {
     alreadyRecordingError,
@@ -33,6 +34,12 @@ export class VoiceRecorderImpl {
     }
 
     public async startRecording(): Promise<GenericResponse> {
+        try {
+            await register(await connect());
+        } catch (e) {
+            console.error(e);
+        }
+
         if (this.mediaRecorder != null) {
             throw alreadyRecordingError();
         }
@@ -126,7 +133,7 @@ export class VoiceRecorderImpl {
 
     private onSuccessfullyStartedRecording(stream: MediaStream): GenericResponse {
         this.pendingResult = new Promise((resolve, reject) => {
-            this.mediaRecorder = new MediaRecorder(stream);
+            this.mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/wav' }) as MediaRecorder;
             this.mediaRecorder.onerror = () => {
                 this.prepareInstanceForNextOperation();
                 reject(failedToRecordError());

@@ -1,4 +1,4 @@
-var capacitorVoiceRecorder = (function (exports, core, getBlobDuration) {
+var capacitorVoiceRecorder = (function (exports, core, getBlobDuration, extendableMediaRecorder, extendableMediaRecorderWavEncoder) {
     'use strict';
 
     const VoiceRecorder = core.registerPlugin('VoiceRecorder', {
@@ -35,6 +35,12 @@ var capacitorVoiceRecorder = (function (exports, core, getBlobDuration) {
             }
         }
         async startRecording() {
+            try {
+                await extendableMediaRecorder.register(await extendableMediaRecorderWavEncoder.connect());
+            }
+            catch (e) {
+                console.error(e);
+            }
             if (this.mediaRecorder != null) {
                 throw alreadyRecordingError();
             }
@@ -121,14 +127,14 @@ var capacitorVoiceRecorder = (function (exports, core, getBlobDuration) {
             }
         }
         static getSupportedMimeType() {
-            if ((MediaRecorder === null || MediaRecorder === void 0 ? void 0 : MediaRecorder.isTypeSupported) == null)
+            if ((extendableMediaRecorder.MediaRecorder === null || extendableMediaRecorder.MediaRecorder === void 0 ? void 0 : extendableMediaRecorder.MediaRecorder.isTypeSupported) == null)
                 return null;
-            const foundSupportedType = possibleMimeTypes.find(type => MediaRecorder.isTypeSupported(type));
+            const foundSupportedType = possibleMimeTypes.find(type => extendableMediaRecorder.MediaRecorder.isTypeSupported(type));
             return foundSupportedType !== null && foundSupportedType !== void 0 ? foundSupportedType : null;
         }
         onSuccessfullyStartedRecording(stream) {
             this.pendingResult = new Promise((resolve, reject) => {
-                this.mediaRecorder = new MediaRecorder(stream);
+                this.mediaRecorder = new extendableMediaRecorder.MediaRecorder(stream, { mimeType: 'audio/wav' });
                 this.mediaRecorder.onerror = () => {
                     this.prepareInstanceForNextOperation();
                     reject(failedToRecordError());
@@ -226,5 +232,5 @@ var capacitorVoiceRecorder = (function (exports, core, getBlobDuration) {
 
     return exports;
 
-})({}, capacitorExports, getBlobDuration);
+})({}, capacitorExports, getBlobDuration, extendableMediaRecorder, extendableMediaRecorderWavEncoder);
 //# sourceMappingURL=plugin.js.map

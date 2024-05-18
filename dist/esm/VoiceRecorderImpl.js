@@ -1,4 +1,6 @@
 import getBlobDuration from 'get-blob-duration';
+import { MediaRecorder, register } from 'extendable-media-recorder';
+import { connect } from 'extendable-media-recorder-wav-encoder';
 import { alreadyRecordingError, couldNotQueryPermissionStatusError, deviceCannotVoiceRecordError, emptyRecordingError, failedToFetchRecordingError, failedToRecordError, failureResponse, missingPermissionError, recordingHasNotStartedError, successResponse, } from './predefined-web-responses';
 // these mime types will be checked one by one in order until one of them is found to be supported by the current browser
 const possibleMimeTypes = ['audio/aac', 'audio/webm;codecs=opus', 'audio/mp4', 'audio/webm', 'audio/ogg;codecs=opus'];
@@ -19,6 +21,12 @@ export class VoiceRecorderImpl {
         }
     }
     async startRecording() {
+        try {
+            await register(await connect());
+        }
+        catch (e) {
+            console.error(e);
+        }
         if (this.mediaRecorder != null) {
             throw alreadyRecordingError();
         }
@@ -112,7 +120,7 @@ export class VoiceRecorderImpl {
     }
     onSuccessfullyStartedRecording(stream) {
         this.pendingResult = new Promise((resolve, reject) => {
-            this.mediaRecorder = new MediaRecorder(stream);
+            this.mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/wav' });
             this.mediaRecorder.onerror = () => {
                 this.prepareInstanceForNextOperation();
                 reject(failedToRecordError());
